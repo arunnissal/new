@@ -1,3 +1,5 @@
+// --- QR Scanner Script with Enhanced UI Integration ---
+
 function logout() {
     localStorage.clear();
     window.location.href = 'login.html';
@@ -20,22 +22,32 @@ function logout() {
       const logs = JSON.parse(localStorage.getItem(key)) || [];
   
       if (logs.find(e => e.id === studentName)) {
-        alert("Already marked for this session.");
+        showMessage("You have already marked attendance for this session.", "warning");
         return;
       }
   
       logs.push(logEntry);
       localStorage.setItem(key, JSON.stringify(logs));
       displayLog(logEntry);
+      showMessage("Attendance marked successfully!", "success");
     } catch (err) {
-      alert("Invalid QR code");
+      showMessage("Invalid QR code. Please try again.", "error");
     }
   }
   
   function displayLog(entry) {
     const li = document.createElement("li");
+    li.className = "log-item";
     li.textContent = `ID: ${entry.id} — Marked at ${entry.time}`;
     logList.prepend(li);
+  }
+  
+  function showMessage(message, type) {
+    const msgBox = document.createElement("div");
+    msgBox.className = `message-box ${type}`;
+    msgBox.textContent = message;
+    document.body.appendChild(msgBox);
+    setTimeout(() => msgBox.remove(), 3000);
   }
   
   const html5QrCode = new Html5Qrcode("reader");
@@ -50,5 +62,8 @@ function logout() {
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, markAttendance);
       }, 2000);
     },
-    (errorMessage) => {}
+    (errorMessage) => {
+      console.warn("QR Scan error:", errorMessage);
+    }
   );
+  

@@ -1,0 +1,24 @@
+.message-box {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    z-index: 9999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .message-box.success { background-color: #4CAF50; }
+  .message-box.warning { background-color: #FFC107; }
+  .message-box.error { background-color: #F44336; }
+  
+  #log .log-item {
+    padding: 6px 12px;
+    margin: 4px 0;
+    border-left: 4px solid #4CAF50;
+    background: #f9f9f9;
+    border-radius: 4px;
+  }
+  

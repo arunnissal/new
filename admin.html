@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      padding: 5px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .user-list {
+      margin-top: 30px;
+    }
+    .user-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+      padding: 5px 0;
+    }
+    .user-entry button {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Dashboard</h1>
+    <button onclick="logout()">Logout</button>
+
+    <h2>Add User</h2>
+    <form id="addUserForm">
+      <select id="userRole" required>
+        <option value="">Select Role</option>
+        <option value="staff">Staff</option>
+        <option value="student">Student</option>
+      </select>
+      <input type="text" id="newUsername" placeholder="Username" required>
+      <input type="password" id="newPassword" placeholder="Password" required>
+      <button type="submit">Add User</button>
+    </form>
+
+    <h2>Student Attendance Logs</h2>
+    <ul id="logList"></ul>
+
+    <h2 class="user-list">All Users</h2>
+    <ul id="userList"></ul>
+  </div>
+
+  <script>
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+
+    const userListEl = document.getElementById("userList");
+
+    document.getElementById("addUserForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const role = document.getElementById("userRole").value;
+      const username = document.getElementById("newUsername").value;
+      const password = document.getElementById("newPassword").value;
+
+      const users = JSON.parse(localStorage.getItem("users")) || {};
+      users[username] = { username, password, role };
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("User added successfully.");
+      e.target.reset();
+      renderUsers();
+    });
+
+    function renderUsers() {
+      const users = JSON.parse(localStorage.getItem("users")) || {};
+      userListEl.innerHTML = "";
+      Object.keys(users).forEach(username => {
+        if (username !== "admin") {
+          const li = document.createElement("li");
+          li.className = "user-entry";
+          li.innerHTML = `${username} (${users[username].role}) <button onclick="removeUser('${username}')">Remove</button>`;
+          userListEl.appendChild(li);
+        }
+      });
+    }
+
+    function removeUser(username) {
+      const users = JSON.parse(localStorage.getItem("users")) || {};
+      delete users[username];
+      localStorage.setItem("users", JSON.stringify(users));
+      alert(`User '${username}' removed.`);
+      renderUsers();
+    }
+
+    function loadAttendanceLogs() {
+      const logList = document.getElementById("logList");
+      logList.innerHTML = "";
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith("attendance-")) {
+          const logs = JSON.parse(localStorage.getItem(key));
+          logs.forEach(log => {
+            const li = document.createElement("li");
+            li.textContent = `${log.id} — ${log.time} (${key})`;
+            logList.appendChild(li);
+          });
+        }
+      });
+    }
+
+    // Default users setup
+    const defaultUsers = {
+      admin: { username: "admin", password: "admin123", role: "admin" },
+      staff: { username: "staff", password: "staff123", role: "staff" },
+      student: { username: "student", password: "student123", role: "student" }
+    };
+    const savedUsers = JSON.parse(localStorage.getItem("users")) || {};
+    Object.keys(defaultUsers).forEach(key => {
+      if (!savedUsers[key]) savedUsers[key] = defaultUsers[key];
+    });
+    localStorage.setItem("users", JSON.stringify(savedUsers));
+
+    loadAttendanceLogs();
+    renderUsers();
+  </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Staff Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Staff QR Generator</h1>
+    <button onclick="logout()">Logout</button>
+
+    <h2>Generate QR Code</h2>
+    <button onclick="generateQR()">Start Session</button>
+    <div id="qrContainer"></div>
+    <p id="statusMsg"></p>
+
+    <h2>Session Attendance</h2>
+    <ul id="attendanceLog"></ul>
+
+    <button onclick="downloadCSV()">Download Attendance CSV</button>
+  </div>
+
+  <script>
+    const username = localStorage.getItem("username");
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    function generateQR() {
+      const sessionId = `${username}-${Date.now()}`;
+      const qrData = JSON.stringify({ sessionId, staff: username });
+
+      QRCode.toCanvas(document.createElement("canvas"), qrData, { width: 200 }, (err, canvas) => {
+        const qrDiv = document.getElementById("qrContainer");
+        qrDiv.innerHTML = "";
+        qrDiv.appendChild(canvas);
+        localStorage.setItem("currentSessionId", sessionId);
+        localStorage.setItem(`attendance-${sessionId}`, JSON.stringify([]));
+        document.getElementById("statusMsg").textContent = "QR code valid for 5 minutes";
+
+        setTimeout(() => {
+          qrDiv.innerHTML = "<p>QR code expired.</p>";
+          document.getElementById("statusMsg").textContent = "";
+        }, 5 * 60 * 1000);
+      });
+
+      updateAttendanceLog(sessionId);
+    }
+
+    function updateAttendanceLog(sessionId) {
+      const list = document.getElementById("attendanceLog");
+      list.innerHTML = "";
+      const logs = JSON.parse(localStorage.getItem(`attendance-${sessionId}`)) || [];
+      logs.forEach(entry => {
+        const li = document.createElement("li");
+        li.textContent = `ID: ${entry.id} — ${entry.time}`;
+        list.appendChild(li);
+      });
+    }
+
+    function downloadCSV() {
+      const sessionId = localStorage.getItem("currentSessionId");
+      if (!sessionId) return alert("No active session");
+
+      const logs = JSON.parse(localStorage.getItem(`attendance-${sessionId}`)) || [];
+      if (logs.length === 0) return alert("No attendance data yet.");
+
+      let csvContent = "data:text/csv;charset=utf-8,Student Name,Time\n";
+      logs.forEach(row => {
+        csvContent += `${row.id},${row.time}\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `attendance-${sessionId}.csv`);
+      document.body.appendChild(link);
+      link.click();
+    }
+
+    setInterval(() => {
+      const sessionId = localStorage.getItem("currentSessionId");
+      if (sessionId) updateAttendanceLog(sessionId);
+    }, 2000);
+  </script>
+</body>
+</html>

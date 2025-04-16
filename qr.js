@@ -5,18 +5,21 @@ function logout() {
   
   const username = localStorage.getItem("username");
   const logList = document.getElementById("log");
+  const users = JSON.parse(localStorage.getItem("users")) || {};
+  const studentName = users[username]?.username || username;
   
   function markAttendance(qrText) {
     try {
       const data = JSON.parse(qrText);
       const sessionId = data.sessionId;
+      const staff = data.staff;
       const time = new Date().toLocaleString();
-      const logEntry = { id: username, time };
+      const logEntry = { id: studentName, time };
       const key = `attendance-${sessionId}`;
   
       const logs = JSON.parse(localStorage.getItem(key)) || [];
   
-      if (logs.find(e => e.id === username)) {
+      if (logs.find(e => e.id === studentName)) {
         alert("Already marked for this session.");
         return;
       }
@@ -49,5 +52,3 @@ function logout() {
     },
     (errorMessage) => {}
   );
-  
-  
